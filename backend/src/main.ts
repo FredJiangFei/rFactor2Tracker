@@ -24,7 +24,7 @@ const subscribeTopic = (topic: string) => {
   })
   
   client.on('message', (topic, payload) => {
-    console.log('Received Message:', topic, payload)
+    console.log('Received Message:', topic, payload.toString())
   })
 }
 

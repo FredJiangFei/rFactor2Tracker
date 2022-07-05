@@ -14,7 +14,7 @@ while (!connected)
         telemetryBuffer.Connect();
         connected = true;
     }
-    catch (Exception ex)
+    catch (Exception)
     {
         Disconnect();
     }
