@@ -16,15 +16,12 @@ namespace MQTT
                     .Build();
 
         await client.ConnectAsync(builder);
-
         string json = JsonConvert.SerializeObject(elemetry);
         var message = new MqttApplicationMessageBuilder()
-                    .WithTopic("/nodejs/mqtt")
+                    .WithTopic("/nodejs/mqtt/Telemetry")
                     .WithPayload(json)
                     .Build();
-        if(client.IsConnected){
         await client.PublishAsync(message);
-        }
         await client.DisconnectAsync();
     }
   }

@@ -3,11 +3,32 @@ using MQTT;
 using rF2SMMonitor;
 using rF2SMMonitor.rFactor2Data;
 
-var monitor = new rFactor2Monitor();
-var telemetry = new rF2Telemetry {
-   mBytesUpdatedHint = 10,
-   mNumVehicles = 20
-}; // monitor.GetRF2Telemetry();
+MappedBuffer<rF2Telemetry> telemetryBuffer = new MappedBuffer<rF2Telemetry>(rFactor2Constants.MM_TELEMETRY_FILE_NAME, true /*partial*/, true /*skipUnchanged*/);
+rF2Telemetry telemetry = new rF2Telemetry();
+bool connected = false;
 
-var mqttTest = new MQTTTest();
-await mqttTest.Send(telemetry);
+while (!connected)
+{
+    try
+    {
+        telemetryBuffer.Connect();
+        connected = true;
+    }
+    catch (Exception ex)
+    {
+        Disconnect();
+    }
+}
+
+while (connected)
+{
+    telemetryBuffer.GetMappedData(ref telemetry);
+    var mqttTest = new MQTTTest();
+    await mqttTest.Send(telemetry);
+}
+
+void Disconnect()
+{
+    telemetryBuffer.Disconnect();
+    connected = false;
+}

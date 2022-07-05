@@ -1,4 +1,3 @@
-using rF2SMMonitor;
 using rF2SMMonitor.rFactor2Data;
 
 namespace rF2SMMonitor
@@ -12,14 +11,8 @@ namespace rF2SMMonitor
     const bool useStockCarRulesPlugin = false;
     bool connected = false;
 
-    // Read buffers:
     MappedBuffer<rF2Telemetry> telemetryBuffer = new MappedBuffer<rF2Telemetry>(rFactor2Constants.MM_TELEMETRY_FILE_NAME, true /*partial*/, true /*skipUnchanged*/);
-
-    // Marshalled views:
     rF2Telemetry telemetry = new rF2Telemetry();
-    rF2Extended extended = new rF2Extended();
-    rF2Scoring scoring  = new rF2Scoring();
-    rF2Rules rules = new rF2Rules();
 
     public rF2Telemetry GetRF2Telemetry() {
         telemetryBuffer.ClearStats();
@@ -41,7 +34,7 @@ namespace rF2SMMonitor
             telemetryBuffer.GetMappedData(ref telemetry);
             return telemetry;
         }
-        return new rF2Telemetry();
+        return telemetry;
     } 
 
     void Disconnect()

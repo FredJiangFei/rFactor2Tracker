@@ -14,26 +14,18 @@ const client = mqtt.connect(connectUrl, {
   reconnectPeriod: 1000,
 })
 
-const topic = '/nodejs/mqtt'
-client.on('connect', () => {
-  console.log('Connected')
-
-  client.subscribe([topic], () => {
-    console.log(`Subscribe to topic '${topic}'`)
-  })
-
+const subscribeTopic = (topic: string) => {
   client.on('connect', () => {
-    client.publish(topic, 'nodejs mqtt test',
-      { qos: 0, retain: false },
-      (error) => {
-        if (error) {
-          console.error(error)
-        }
-      }
-    )
+    console.log('Connected')
+  
+    client.subscribe([topic], () => {
+      console.log(`Subscribe to topic '${topic}'`)
+    })
   })
-})
+  
+  client.on('message', (topic, payload) => {
+    console.log('Received Message:', topic, payload)
+  })
+}
 
-client.on('message', (topic, payload) => {
-  console.log('Received Message:', topic, payload.toString())
-})
+subscribeTopic('/nodejs/mqtt/Telemetry');
