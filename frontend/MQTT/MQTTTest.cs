@@ -3,6 +3,8 @@ using MQTTnet.Client;
 using rF2SMMonitor.rFactor2Data;
 using Newtonsoft.Json;
 using System.Text;
+using MQTTnet.Packets;
+using rF2SMMonitor;
 
 namespace MQTT
 {
@@ -12,9 +14,6 @@ namespace MQTT
       static int elemetryNum = 0;
 
     public async Task<IMqttClient> Connect(){
-      if (!Directory.Exists(basePath))
-        Directory.CreateDirectory(basePath);
-
         var mattFactory = new MqttFactory();
         var client = mattFactory.CreateMqttClient();
         var builder = new MqttClientOptionsBuilder()
@@ -22,59 +21,85 @@ namespace MQTT
                     .WithCleanSession()
                     .Build();
         await client.ConnectAsync(builder);
-
         return client;
     }
     
+    public async Task SendScoring(rF2Scoring scoring){
+      if (scoring.mScoringInfo.mNumVehicles == 0)
+        return;
 
-      public async Task SendTelemetry(rF2Telemetry elemetry){
-        var client = await Connect();
-        var index = 0;
+      var playerVeh = GetPlayerScoring(ref scoring);
+      if (playerVeh.mIsPlayer != 1)
+        return;
 
-        foreach (var vehicle in elemetry.mVehicles)
-        {
-          string path = $"{basePath}\\Telemetry_{elemetryNum}_{index}.log";
-          string json = JsonConvert.SerializeObject(vehicle, Formatting.Indented);
-          var xx = Encoding.Default.GetBytes(json);
-          using (var stream = File.Create(path))
-          {
-            stream.Write(xx, 0, xx.Length);
-          }
+       WriteFile("Scoring", scoring);
 
-          var message = new MqttApplicationMessageBuilder()
-                      .WithTopic("/nodejs/mqtt/Telemetry")
-                      .WithPayload(json)
-                      .Build();
-          await client.PublishAsync(message);
+      var pv = scoring.mVehicles.FirstOrDefault(x=>x.mIsPlayer == 1);
 
-          index++;
+      var client = await Connect();
+      client.ApplicationMessageReceivedAsync += e =>
+      {
+          OnApplicationMessageReceived(e);
+          return Task.CompletedTask;
+      };
+
+      var objSubOptions = new MqttClientSubscribeOptions();
+      var objTopics = new List<MqttTopicFilter>{
+        new MqttTopicFilter {
+          Topic = "/nodejs/mqtt/Scoring/callback"
         }
+      };
+      objSubOptions.TopicFilters = objTopics;
+      await client.SubscribeAsync(objSubOptions); 
 
-        var overMessage = new MqttApplicationMessageBuilder()
-                .WithTopic("/nodejs/mqtt/Telemetry")
-                .WithPayload("/nodejs/mqtt/Telemetry over")
-                .Build();
-        await client.PublishAsync(overMessage);
-        
-        elemetryNum++;
-        await client.DisconnectAsync();
+      var info = new { mID = pv.mID, mPlace = pv.mPlace, mGamePhase = scoring.mScoringInfo.mGamePhase };
+     
+      await Send(client, "Scoring", info);
+      
+      elemetryNum++;
+        // await client.DisconnectAsync();
     }
 
-    public async Task SendScoring(rF2Scoring scoring){
-        if(scoring.mVehicles == null) return;
-        var pv = scoring.mVehicles.FirstOrDefault(x=>x.mIsPlayer == 1);
+    public rF2VehicleScoring GetPlayerScoring(ref rF2Scoring scoring)
+    {
+      var playerVehScoring = new rF2VehicleScoring();
+      for (int i = 0; i < scoring.mScoringInfo.mNumVehicles; ++i)
+      {
+        var vehicle = scoring.mVehicles[i];
+        switch ((rFactor2Constants.rF2Control)vehicle.mControl)
+        {
+          case rFactor2Constants.rF2Control.AI:
+          case rFactor2Constants.rF2Control.Player:
+          case rFactor2Constants.rF2Control.Remote:
+            if (vehicle.mIsPlayer == 1)
+              playerVehScoring = vehicle;
 
-        var client = await Connect();
-        var xx = new { mID = pv.mID, mPlace = pv.mPlace, mGamePhase = scoring.mScoringInfo.mGamePhase };
+            break;
 
-        WriteFile("Scoring", pv);
-        await Send(client, "Scoring", xx);
-      
-        elemetryNum++;
-        await client.DisconnectAsync();
+          default:
+            continue;
+        }
+
+        if (playerVehScoring.mIsPlayer == 1)
+          break;
+      }
+
+      return playerVehScoring;
+    }
+
+
+    void OnApplicationMessageReceived(MqttApplicationMessageReceivedEventArgs e)
+    {
+      Console.WriteLine(e.ApplicationMessage.Topic);
+      Console.WriteLine(Encoding.UTF8.GetString(e.ApplicationMessage.Payload));
+      Console.WriteLine(e.ApplicationMessage.QualityOfServiceLevel);
+      Console.WriteLine(e.ApplicationMessage.Retain);
     }
 
     private void WriteFile<T>(string topic, T data){
+      if (!Directory.Exists(basePath))
+        Directory.CreateDirectory(basePath);
+
       string path = $"{basePath}\\{topic}_{elemetryNum}.log";
       string json = JsonConvert.SerializeObject(data, Formatting.Indented);
       var xx = Encoding.Default.GetBytes(json);

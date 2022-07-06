@@ -6,7 +6,7 @@ type TInput = {
 
 export default ({db}: TInput) => {
   const connect = () => {
-    mongoose.connect(db).then(() => console.log(`Connected to ${db}...`));
+    mongoose.connect(db).then(() => console.log(`Mongodb Connected to ${db}...`));
   };
   connect();
 };

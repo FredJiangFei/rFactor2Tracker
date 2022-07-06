@@ -490,6 +490,7 @@ namespace rF2SMMonitor
         return;
 
       var scoringPlrId = playerVeh.mID;
+      
       if (!idsToTelIndices.ContainsKey(scoringPlrId))
         return;
 

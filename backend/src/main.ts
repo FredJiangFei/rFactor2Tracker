@@ -1,36 +1,23 @@
-import mqtt from 'mqtt';
+
 import { rF2ScoringInfo } from "./rF2Models/rF2ScoringInfo";
 import { createClient } from 'redis';
 import { ScoringInfo } from './models/ScoringInfo';
 import connectDb from './startup/connectDb';
+import mqttClient from './startup/mqttClient';
 
 const db = 'mongodb://localhost/points-scoring';
 connectDb({db});
 
-const host = 'broker.emqx.io'
-const port = '1883'
-const clientId = `mqtt_${Math.random().toString(16).slice(3)}`
-const connectUrl = `mqtt://${host}:${port}`
-
-const client = mqtt.connect(connectUrl, {
-  clientId,
-  clean: true,
-  connectTimeout: 4000,
-  username: 'emqx',
-  password: 'public',
-  reconnectPeriod: 1000,
-})
-
 const subscribeTopic = (topic: string) => {
-  client.on('connect', () => {
-    console.log('Connected')
+  mqttClient.on('connect', () => {
+    console.log('MQTT Connected')
   
-    client.subscribe([topic], () => {
+    mqttClient.subscribe([topic], () => {
       console.log(`Subscribe to topic '${topic}'`)
     })
   })
   
-  client.on('message', async (topic: string, payload: string) => {
+  mqttClient.on('message', async (topic: string, payload: string) => {
     const scoringInfo: rF2ScoringInfo = JSON.parse(payload);
 
     const redisClient = createClient();
@@ -46,14 +33,18 @@ const subscribeTopic = (topic: string) => {
       console.log("startPlace", startPlace);
       console.log("endPlace", scoringInfo.mPlace);
 
-      await ScoringInfo.create({
+      const si = {
         Id: scoringInfo.mID,
         StartPosition: startPlace,
         Position: scoringInfo.mPlace,
         Score: 100,
         ImprovingStartPosition: true,
         LoosingStartPosition: false
-      });
+      };
+
+      mqttClient.publish(`/nodejs/mqtt/Scoring/callback`, JSON.stringify(si), { qos: 0, retain: false });
+
+      await ScoringInfo.create(si);
     }
   })
 }

@@ -9,6 +9,9 @@ MappedBuffer<rF2Scoring> scoringBuffer = new MappedBuffer<rF2Scoring>(rFactor2Co
 rF2Telemetry telemetry = new rF2Telemetry();
 rF2Scoring scoring = new rF2Scoring();
 
+
+
+
 bool connected = false;
 
 while (!connected)
@@ -35,6 +38,8 @@ while (!connected)
 while (connected)
 {
     scoringBuffer.GetMappedData(ref scoring);
+
+    
     var mqttTest = new MQTTTest();
     await mqttTest.SendScoring(scoring);
 }
