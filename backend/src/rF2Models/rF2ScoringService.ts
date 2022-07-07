@@ -34,19 +34,28 @@ const setSessionEndPlace = async (sessionId: string, scoringInfo: rF2ScoringInfo
         EndPosition: endPosition,
         ImprovingStartPosition: startPosition > endPosition,
         LoosingStartPosition: startPosition < endPosition,
-        Points: isLastDriver ? [] : [
+        Points: isLastDriver ? [
           { Amount: 3, Reason: 'Overtaking 3 Driver' },
           { Amount: 1, Reason: 'Fastest Start' }
-        ]
+        ] : [] 
       };   
 
-      const session = {
-        Id: sessionId,
-        Drivers: [
-          driver
-        ]
+      if(isLastDriver) {
+        const session = {
+          Id: sessionId,
+          Drivers: [
+            {
+              Id: 1,
+              StartPosition: 3,
+              EndPosition: 10,
+              ImprovingStartPosition: 0,
+              LoosingStartPosition: 1
+            },
+            driver
+          ]
+        }
+        await Session.create(session);
       }
-      await Session.create(session);
       //   mqtt.publish(`${topic}/callback`, JSON.stringify(session), { qos: 0, retain: false });
     }
 }
