@@ -1,4 +1,5 @@
 import { Document, Schema, model } from 'mongoose';
+import { IPoint } from './point';
 
 export interface IDriver extends Document {
   Id: number;
@@ -6,6 +7,7 @@ export interface IDriver extends Document {
   EndPosition: number;
   ImprovingStartPosition: boolean;
   LoosingStartPosition: boolean;
+  Points: IPoint[]
 }
 
 const DriverSchema = new Schema<IDriver>({
@@ -23,7 +25,8 @@ const DriverSchema = new Schema<IDriver>({
   },
   LoosingStartPosition: {
     type: Boolean
-  }
+  },
+  Points: []
 });
 
 export const Driver = model<IDriver>("Driver", DriverSchema);

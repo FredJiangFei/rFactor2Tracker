@@ -1,12 +1,20 @@
 import { rF2ScoringInfo } from "./rF2ScoringInfo";
-import redis from '../startup/redis';
 import { Session } from "../models/session";
+import redis from '../startup/redis';
+
+redis.connect();
 
 const setSessionSatrtPlace = async (sessionId: string, scoringInfo: rF2ScoringInfo) => {
     var key = sessionId + '_' + scoringInfo.mID;
+
     const isSessionStart = scoringInfo.mGamePhase === 5;
     if(isSessionStart){
-      await redis.set(key, scoringInfo.mPlace)
+      
+      const driverCache = {
+        StartPosition: scoringInfo.mPlace
+      }
+
+      await redis.set(key, scoringInfo.mPlace);
     }
 }
 
@@ -15,23 +23,31 @@ const setSessionEndPlace = async (sessionId: string, scoringInfo: rF2ScoringInfo
 
     const isSessionEnd = scoringInfo.mGamePhase === 8;
     if(isSessionEnd){
-      const startPlace = await redis.get(key);
-      const endPlace = scoringInfo.mPlace;
-  
+      const startPosition = +await redis.get(key);
+      const endPosition = scoringInfo.mPlace;
+      
+      const isLastDriver = scoringInfo.mID === 1;
+
+      const driver = {
+        Id: scoringInfo.mID,
+        StartPosition: startPosition,
+        EndPosition: endPosition,
+        ImprovingStartPosition: startPosition > endPosition,
+        LoosingStartPosition: startPosition < endPosition,
+        Points: isLastDriver ? [] : [
+          { Amount: 3, Reason: 'Overtaking 3 Driver' },
+          { Amount: 1, Reason: 'Fastest Start' }
+        ]
+      };   
+
       const session = {
         Id: sessionId,
         Drivers: [
-          {
-            Id: scoringInfo.mID,
-            StartPosition: +startPlace,
-            EndPosition: endPlace,
-            ImprovingStartPosition: +startPlace > endPlace,
-            LoosingStartPosition: +startPlace < endPlace
-          }
+          driver
         ]
       }
       await Session.create(session);
-    //   mqtt.publish(`${topic}/callback`, JSON.stringify(session), { qos: 0, retain: false });
+      //   mqtt.publish(`${topic}/callback`, JSON.stringify(session), { qos: 0, retain: false });
     }
 }
 

@@ -17,7 +17,7 @@ namespace MQTT
         var mattFactory = new MqttFactory();
         var client = mattFactory.CreateMqttClient();
         var builder = new MqttClientOptionsBuilder()
-                    .WithTcpServer("broker.emqx.io", 1883)
+                    .WithTcpServer("broker.hivemq.com", 1883)
                     .WithCleanSession()
                     .Build();
         await client.ConnectAsync(builder);
