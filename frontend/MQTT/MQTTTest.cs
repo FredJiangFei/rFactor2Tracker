@@ -24,15 +24,13 @@ namespace MQTT
         return client;
     }
     
-    public async Task SendScoring(rF2Scoring scoring){
+    public async Task SendScoring(string topic, rF2Scoring scoring){
       if (scoring.mScoringInfo.mNumVehicles == 0)
         return;
 
       var playerVeh = GetPlayerScoring(ref scoring);
       if (playerVeh.mIsPlayer != 1)
         return;
-
-       WriteFile("Scoring", scoring);
 
       var pv = scoring.mVehicles.FirstOrDefault(x=>x.mIsPlayer == 1);
 
@@ -46,15 +44,20 @@ namespace MQTT
       var objSubOptions = new MqttClientSubscribeOptions();
       var objTopics = new List<MqttTopicFilter>{
         new MqttTopicFilter {
-          Topic = "/nodejs/mqtt/Scoring/callback"
+          Topic = $"{topic}/callback"
         }
       };
       objSubOptions.TopicFilters = objTopics;
       await client.SubscribeAsync(objSubOptions); 
 
-      var info = new { mID = pv.mID, mPlace = pv.mPlace, mGamePhase = scoring.mScoringInfo.mGamePhase };
+      var info = new { 
+        mSession = scoring.mScoringInfo.mSession,
+        mID = pv.mID, 
+        mPlace = pv.mPlace, 
+        mGamePhase = scoring.mScoringInfo.mGamePhase 
+      };
      
-      await Send(client, "Scoring", info);
+      await Send(client, topic, info);
       
       elemetryNum++;
         // await client.DisconnectAsync();
@@ -96,11 +99,11 @@ namespace MQTT
       Console.WriteLine(e.ApplicationMessage.Retain);
     }
 
-    private void WriteFile<T>(string topic, T data){
+    private void WriteFile<T>(T data){
       if (!Directory.Exists(basePath))
         Directory.CreateDirectory(basePath);
 
-      string path = $"{basePath}\\{topic}_{elemetryNum}.log";
+      string path = $"{basePath}\\log_{elemetryNum}.log";
       string json = JsonConvert.SerializeObject(data, Formatting.Indented);
       var xx = Encoding.Default.GetBytes(json);
       using (var stream = File.Create(path))
@@ -112,7 +115,7 @@ namespace MQTT
     public async Task Send<T>(IMqttClient client, string topic, T data){
         string json = JsonConvert.SerializeObject(data, Formatting.Indented);
         var message = new MqttApplicationMessageBuilder()
-                .WithTopic($"/nodejs/mqtt/{topic}")
+                .WithTopic(topic)
                 .WithPayload(json)
                 .Build();
         await client.PublishAsync(message);   

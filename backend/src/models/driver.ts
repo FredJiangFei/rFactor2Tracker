@@ -1,25 +1,21 @@
 import { Document, Schema, model } from 'mongoose';
 
-export interface IScoringInfo extends Document {
+export interface IDriver extends Document {
   Id: number;
   StartPosition: number;
-  Position: number;
-  Score: number;
+  EndPosition: number;
   ImprovingStartPosition: boolean;
   LoosingStartPosition: boolean;
 }
 
-const ScoringInfoSchema = new Schema<IScoringInfo>({
+const DriverSchema = new Schema<IDriver>({
   Id: {
     type: Number
   },
   StartPosition: {
     type: Number
   },
-  Position: {
-    type: Number
-  },
-  Score: {
+  EndPosition: {
     type: Number
   },
   ImprovingStartPosition: {
@@ -30,4 +26,4 @@ const ScoringInfoSchema = new Schema<IScoringInfo>({
   }
 });
 
-export const ScoringInfo = model<IScoringInfo>("ScoringInfo", ScoringInfoSchema);
+export const Driver = model<IDriver>("Driver", DriverSchema);

@@ -1,4 +1,5 @@
 export interface rF2ScoringInfo {
+    mSession: number;
     mID: number;
 
     // Game phases:
@@ -16,4 +17,3 @@ export interface rF2ScoringInfo {
 
     mPlace: number;
 }
-  

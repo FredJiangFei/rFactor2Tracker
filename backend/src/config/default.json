@@ -1,3 +1,4 @@
 {
-  "db": "mongodb://localhost/points-scoring"
+  "db": "mongodb://localhost/points-scoring",
+  "redisUrl": "redis://127.0.0.1:6379"
 }

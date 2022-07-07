@@ -1,12 +1,8 @@
 import mongoose from 'mongoose';
 
-type TInput = {
-  db: string;
-}
-
-export default ({db}: TInput) => {
-  const connect = () => {
-    mongoose.connect(db).then(() => console.log(`Mongodb Connected to ${db}...`));
-  };
-  connect();
+const connectDb = () => {
+  const db = "mongodb://localhost/points-scoring";
+  mongoose.connect(db).then(() => console.log(`Mongodb Connected to ${db}...`));
 };
+
+export default connectDb;
