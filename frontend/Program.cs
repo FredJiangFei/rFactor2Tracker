@@ -6,10 +6,7 @@ using rF2SMMonitor.rFactor2Data;
 MappedBuffer<rF2Scoring> scoringBuffer = new MappedBuffer<rF2Scoring>(rFactor2Constants.MM_SCORING_FILE_NAME, true /*partial*/, true /*skipUnchanged*/);
 rF2Scoring scoring = new rF2Scoring();
 
-bool connected = false;
-
-await Test("SIM-1");
-await Test("SIM-2");
+bool connected = true;
 
 async Task Test(string directory){
     var mqttTest = new MQTTTest();
@@ -24,28 +21,29 @@ async Task Test(string directory){
     }
 }
 
+await Connect();
 async Task Connect()
 {
-    while (!connected)
-    {
-        try
-        {
-            scoringBuffer.Connect();
-            connected = true;
-        }
-        catch (Exception)
-        {
-            Disconnect();
-        }
-    }
+    // while (!connected)
+    // {
+    //     try
+    //     {
+    //         scoringBuffer.Connect();
+    //         connected = true;
+    //     }
+    //     catch (Exception)
+    //     {
+    //         Disconnect();
+    //     }
+    // }
 
     while (connected)
     {
-        scoringBuffer.GetMappedData(ref scoring);
-
-        
-        var mqttTest = new MQTTTest();
-        await mqttTest.SendScoring("telemetry/SIM-1", scoring);
+        // scoringBuffer.GetMappedData(ref scoring);
+        // var mqttTest = new MQTTTest();
+        // await mqttTest.SendScoring("telemetry/SIM-1", scoring);
+        await Test("SIM-1");
+        await Test("SIM-2");
     }
 }
 

@@ -90,13 +90,10 @@ namespace MQTT
       return playerVehScoring;
     }
 
-
     void OnApplicationMessageReceived(MqttApplicationMessageReceivedEventArgs e)
     {
       Console.WriteLine(e.ApplicationMessage.Topic);
       Console.WriteLine(Encoding.UTF8.GetString(e.ApplicationMessage.Payload));
-      Console.WriteLine(e.ApplicationMessage.QualityOfServiceLevel);
-      Console.WriteLine(e.ApplicationMessage.Retain);
     }
 
     private void WriteFile<T>(T data){
