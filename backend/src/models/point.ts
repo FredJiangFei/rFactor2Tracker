@@ -1,12 +1,16 @@
 import { Document, Schema, model } from 'mongoose';
 
 export interface IPoint extends Document {
-  Amount: number;
+  Points: number;
+  Count: number;
   Reason: string;
 }
 
 const PointSchema = new Schema<IPoint>({
-  Amount: {
+  Points: {
+    type: Number,
+  },
+  Count: {
     type: Number,
   },
   Reason: {

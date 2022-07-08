@@ -7,6 +7,7 @@ export interface IDriver extends Document {
   EndPosition: number;
   ImprovingStartPosition: boolean;
   LoosingStartPosition: boolean;
+  OnTarmacTime: number;
   Points: IPoint[];
 }
 
@@ -25,6 +26,9 @@ const DriverSchema = new Schema<IDriver>({
   },
   LoosingStartPosition: {
     type: Boolean,
+  },
+  OnTarmacTime: {
+    type: Number,
   },
   Points: [],
 });

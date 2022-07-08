@@ -24,7 +24,7 @@ namespace MQTT
         return client;
     }
     
-    public async Task SendScoring(string topic, rF2Scoring scoring){
+    public async Task TrackScoring(string topic, rF2MqttModel scoring){
       if (scoring.mScoringInfo.mNumVehicles == 0)
         return;
 
@@ -54,7 +54,8 @@ namespace MQTT
         mSession = scoring.mScoringInfo.mSession,
         mID = pv.mID, 
         mPlace = pv.mPlace, 
-        mGamePhase = scoring.mScoringInfo.mGamePhase 
+        mGamePhase = scoring.mScoringInfo.mGamePhase,
+        mWheels = scoring.mWheels?.Select(x=>x.mSurfaceType)
       };
      
       await Send(client, topic, info);
@@ -63,7 +64,7 @@ namespace MQTT
         // await client.DisconnectAsync();
     }
 
-    public rF2VehicleScoring GetPlayerScoring(ref rF2Scoring scoring)
+    public rF2VehicleScoring GetPlayerScoring(ref rF2MqttModel scoring)
     {
       var playerVehScoring = new rF2VehicleScoring();
       for (int i = 0; i < scoring.mScoringInfo.mNumVehicles; ++i)

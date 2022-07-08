@@ -8,20 +8,22 @@ rF2Scoring scoring = new rF2Scoring();
 
 bool connected = true;
 
-async Task Test(string directory){
-    var mqttTest = new MQTTTest();
+await TestScoring("SIM-1");
+await TestScoring("SIM-2");
 
+async Task TestScoring(string directory){
+    var mqttTest = new MQTTTest();
     string[] allfiles = Directory.GetFiles(directory);
     Array.Sort(allfiles, StringComparer.InvariantCulture);
     foreach (var file in allfiles)
     {
         string json = File.ReadAllText(file);
-        var sc = Newtonsoft.Json.JsonConvert.DeserializeObject<rF2Scoring>(json);
-        await mqttTest.SendScoring(directory, sc);
+        var sc = Newtonsoft.Json.JsonConvert.DeserializeObject<rF2MqttModel>(json);
+        await mqttTest.TrackScoring(directory, sc);
     }
 }
 
-await Connect();
+// await Connect();
 async Task Connect()
 {
     // while (!connected)
@@ -42,10 +44,89 @@ async Task Connect()
         // scoringBuffer.GetMappedData(ref scoring);
         // var mqttTest = new MQTTTest();
         // await mqttTest.SendScoring("telemetry/SIM-1", scoring);
-        await Test("SIM-1");
-        await Test("SIM-2");
+        await TestScoring("SIM-1");
+        await TestScoring("SIM-2");
     }
 }
+
+//  var mqttTest = new MQTTTest();
+
+//         await mqttTest.TrackScoring("SIM-1", new rF2Scoring {
+//             mScoringInfo = new rF2ScoringInfo{
+//                 mSession = 0,
+//                 mGamePhase = 5,
+//                 mNumVehicles = 1
+//             },
+//             mVehicles = new rF2VehicleScoring[]{
+//                 new rF2VehicleScoring {
+//                     mID = 0,
+//                     mTotalLaps = 2,
+//                     mSector = 1,
+//                     mFinishStatus = 0,
+//                     mIsPlayer = 1,
+//                     mControl = 1,
+//                     mPlace = 6
+//                 }
+//             }
+//         });
+
+//         await mqttTest.TrackScoring("SIM-1", new rF2Scoring {
+//             mScoringInfo = new rF2ScoringInfo{
+//                 mSession = 0,
+//                 mGamePhase = 8,
+//                 mNumVehicles = 1
+//             },
+//             mVehicles = new rF2VehicleScoring[]{
+//                 new rF2VehicleScoring {
+//                     mID = 0,
+//                     mTotalLaps = 2,
+//                     mSector = 1,
+//                     mFinishStatus = 0,
+//                     mIsPlayer = 1,
+//                     mControl = 1,
+//                     mPlace = 3
+//                 }
+//             }
+//         });
+
+
+//         await mqttTest.TrackScoring("SIM-2", new rF2Scoring {
+//             mScoringInfo = new rF2ScoringInfo{
+//                 mSession = 0,
+//                 mGamePhase = 3,
+//                 mNumVehicles = 1
+//             },
+//             mVehicles = new rF2VehicleScoring[]{
+//                 new rF2VehicleScoring {
+//                     mID = 1,
+//                     mTotalLaps = 2,
+//                     mSector = 1,
+//                     mFinishStatus = 0,
+//                     mIsPlayer = 1,
+//                     mControl = 1,
+//                     mPlace = 7
+//                 }
+//             }
+//         });
+
+//         await mqttTest.TrackScoring("SIM-2", new rF2Scoring {
+//             mScoringInfo = new rF2ScoringInfo{
+//                 mSession = 0,
+//                 mGamePhase = 8,
+//                 mNumVehicles = 1
+//             },
+//             mVehicles = new rF2VehicleScoring[]{
+//                 new rF2VehicleScoring {
+//                     mID = 1,
+//                     mTotalLaps = 2,
+//                     mSector = 1,
+//                     mFinishStatus = 0,
+//                     mIsPlayer = 1,
+//                     mControl = 1,
+//                     mPlace = 10
+//                 }
+//             }
+//         });
 
 void Disconnect()
 {

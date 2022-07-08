@@ -1,4 +1,6 @@
-export interface rF2ScoringInfo {
+import { rF2Wheel } from './rF2Wheel';
+
+export interface rF2Telemetry {
   mSession: number;
   mID: number;
 
@@ -16,4 +18,6 @@ export interface rF2ScoringInfo {
   mGamePhase: number;
 
   mPlace: number;
+
+  mWheels: rF2Wheel[];
 }
