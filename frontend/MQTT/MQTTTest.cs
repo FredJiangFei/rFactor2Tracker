@@ -51,12 +51,12 @@ namespace MQTT
       await client.SubscribeAsync(objSubOptions); 
 
       var info = new { 
-        mSession = scoring.mScoringInfo.mSession,
-        mID = pv.mID, 
-        mPlace = pv.mPlace, 
-        mGamePhase = scoring.mScoringInfo.mGamePhase,
-        mWheels = scoring.mWheels?.Select(x=>x.mSurfaceType),
-        mLastImpactET = scoring.mLastImpactET
+        Session = scoring.mScoringInfo.mSession,
+        DriverId = pv.mID, 
+        Place = pv.mPlace, 
+        GamePhase = scoring.mScoringInfo.mGamePhase,
+        Wheels = scoring.mWheels?.Select(x=>x.mSurfaceType),
+        LastImpactET = scoring.mLastImpactET
       };
      
       await Send(client, topic, info);

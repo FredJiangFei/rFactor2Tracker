@@ -8,19 +8,19 @@ const setSessionSatrtPlace = async (
   sessionId: string,
   telemetry: rF2Telemetry
 ) => {
-  const isSessionStart = telemetry.mGamePhase === 5;
+  const isSessionStart = telemetry.GamePhase === 5;
   if(!isSessionStart) return;
 
   const cache = {
     Topic: topic,
-    Id: telemetry.mID,
+    Id: telemetry.DriverId,
     OnTarmacTime: 0,
-    StartPosition: telemetry.mPlace,
+    StartPosition: telemetry.Place,
     ColisionsCount: 0,
     Points: [],
     Speeds: []
   };
-  redis.hSet(sessionId, telemetry.mID, JSON.stringify(cache));
+  redis.hSet(sessionId, telemetry.DriverId, JSON.stringify(cache));
 };
 
 const setSessionEndPlace = async (
@@ -28,16 +28,16 @@ const setSessionEndPlace = async (
   telemetry: rF2Telemetry,
   sendPointsBack: Function
 ) => {
-  const isSessionEnd = telemetry.mGamePhase === 8;
+  const isSessionEnd = telemetry.GamePhase === 8;
   if(!isSessionEnd) return;
 
-  const driverCache = await redis.hGet(sessionId, telemetry.mID.toString());
+  const driverCache = await redis.hGet(sessionId, telemetry.DriverId.toString());
 
-  const endPosition = telemetry.mPlace;
+  const endPosition = telemetry.Place;
 
   const speedSum = _.sum(driverCache.Speeds);
   
-  redis.hSet(sessionId, telemetry.mID, JSON.stringify({
+  redis.hSet(sessionId, telemetry.DriverId, JSON.stringify({
     ...driverCache,
     EndPosition: endPosition,
     ImprovingStartPosition: driverCache.StartPosition > endPosition,
@@ -45,7 +45,7 @@ const setSessionEndPlace = async (
     AverageSpeed : speedSum / driverCache.Speeds.length
   }));
 
-  const isLastDriver = telemetry.mID === 1;
+  const isLastDriver = telemetry.DriverId === 1;
   if (isLastDriver) {
     const sessionCache = await redis.client.hGetAll(sessionId);
     const dirvers = Object.values(sessionCache).map((val) => JSON.parse(val));

@@ -1,9 +1,8 @@
 import { rF2Wheel } from './rF2Wheel';
 
 export interface rF2Telemetry {
-  mSession: number;
-  mID: number;
-
+  SessionId: number;
+  DriverId: number;
   // Game phases:
   // 0 Before session has begun
   // 1 Reconnaissance laps (race only)
@@ -15,13 +14,13 @@ export interface rF2Telemetry {
   // 7 Session stopped
   // 8 Session over
   // 9 Paused (tag.2015.09.14 - this is new, and indicates that this is a heartbeat call to the plugin)
-  mGamePhase: number;
+  GamePhase: number;
 
-  mPlace: number;
+  Place: number;
 
-  mLastImpactET: number;
+  LastImpactET: number;
 
-  speed: number;
+  Speed: number;
 
-  mWheels: rF2Wheel[];
+  Wheels: rF2Wheel[];
 }

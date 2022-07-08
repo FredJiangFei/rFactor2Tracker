@@ -3,35 +3,35 @@ import { rF2Telemetry } from '../rF2Models/rF2Telemetry';
 import redis from '../startup/redis';
 
 const calcTimeOnTarmac = async (sessionId: string, telemetry: rF2Telemetry) => {
-  if(telemetry.mWheels === undefined || telemetry.mWheels === null || telemetry.mWheels.length === 0) return;
+  if(telemetry.Wheels === undefined || telemetry.Wheels === null || telemetry.Wheels.length === 0) return;
 
-  const driverCache = await redis.hGet(sessionId, telemetry.mID.toString());
+  const driverCache = await redis.hGet(sessionId, telemetry.DriverId.toString());
 
   // TODO: cal OnTarmacTime
-  redis.hSet(sessionId, telemetry.mID, JSON.stringify({ ...driverCache, OnTarmacTime: 120 }));
+  redis.hSet(sessionId, telemetry.DriverId, JSON.stringify({ ...driverCache, OnTarmacTime: 120 }));
 };
 
 const countColision = async (sessionId: string, telemetry: rF2Telemetry) => {
-  const noImpact = telemetry.mLastImpactET === 0;
+  const noImpact = telemetry.LastImpactET === 0;
   if(noImpact) return;
 
-  const driverCache = await redis.hGet(sessionId, telemetry.mID.toString());
-  const lastImpactETUnchange = driverCache.LastImpactET === telemetry.mLastImpactET;
+  const driverCache = await redis.hGet(sessionId, telemetry.DriverId.toString());
+  const lastImpactETUnchange = driverCache.LastImpactET === telemetry.LastImpactET;
   if(lastImpactETUnchange) return;
 
-  redis.hSet(sessionId, telemetry.mID, JSON.stringify({ 
+  redis.hSet(sessionId, telemetry.DriverId, JSON.stringify({ 
     ...driverCache, 
     ColisionsCount: driverCache.ColisionsCount + 1,
-    LastImpactET: telemetry.mLastImpactET
+    LastImpactET: telemetry.LastImpactET
   }));
 };
 
 const saveSpeed = async (sessionId: string, telemetry: rF2Telemetry) => {
-  const driverCache = await redis.hGet(sessionId, telemetry.mID.toString());
+  const driverCache = await redis.hGet(sessionId, telemetry.DriverId.toString());
 
-  redis.hSet(sessionId, telemetry.mID, JSON.stringify({ 
+  redis.hSet(sessionId, telemetry.DriverId, JSON.stringify({ 
     ...driverCache, 
-    Speeds: [...driverCache.Speeds, telemetry.speed]
+    Speeds: [...driverCache.Speeds, telemetry.Speed]
   }));
 };
 
