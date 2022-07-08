@@ -7,26 +7,26 @@ export interface IDriver extends Document {
   EndPosition: number;
   ImprovingStartPosition: boolean;
   LoosingStartPosition: boolean;
-  Points: IPoint[]
+  Points: IPoint[];
 }
 
 const DriverSchema = new Schema<IDriver>({
   Id: {
-    type: Number
+    type: Number,
   },
   StartPosition: {
-    type: Number
+    type: Number,
   },
   EndPosition: {
-    type: Number
+    type: Number,
   },
   ImprovingStartPosition: {
-    type: Boolean
+    type: Boolean,
   },
   LoosingStartPosition: {
-    type: Boolean
+    type: Boolean,
   },
-  Points: []
+  Points: [],
 });
 
-export const Driver = model<IDriver>("Driver", DriverSchema);
+export const Driver = model<IDriver>('Driver', DriverSchema);

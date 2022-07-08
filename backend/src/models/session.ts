@@ -3,14 +3,14 @@ import { IDriver } from './driver';
 
 export interface ISession extends Document {
   Id: string;
-  Drivers: IDriver[]
+  Drivers: IDriver[];
 }
 
 const SessionSchema = new Schema<ISession>({
   Id: {
-    type: String
+    type: String,
   },
-  Drivers: []
+  Drivers: [],
 });
 
-export const Session = model<ISession>("Session", SessionSchema);
+export const Session = model<ISession>('Session', SessionSchema);

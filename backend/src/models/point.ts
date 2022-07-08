@@ -1,17 +1,17 @@
 import { Document, Schema, model } from 'mongoose';
 
 export interface IPoint extends Document {
-  Amount : number;
+  Amount: number;
   Reason: string;
 }
 
 const PointSchema = new Schema<IPoint>({
   Amount: {
-    type: Number
+    type: Number,
   },
   Reason: {
-    type: String
-  }
+    type: String,
+  },
 });
 
-export const Point = model<IPoint>("Point", PointSchema);
+export const Point = model<IPoint>('Point', PointSchema);

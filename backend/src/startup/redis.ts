@@ -1,12 +1,12 @@
 import { createClient } from 'redis';
 
 const connect = async () => {
-    const client = createClient();
-    await client.connect();
+  const client = createClient();
+  await client.connect();
 
-    return client;
-}
+  return client;
+};
 
 export default {
-    connect
-}
+  connect,
+};
