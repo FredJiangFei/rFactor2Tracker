@@ -19,13 +19,14 @@ const startSession = (session: Session) => {
   mqtt.on('message', async (topic: string, payload: string) => {
       const telemetry: rF2Telemetry = JSON.parse(payload);
 
-      postRaceMetricService.setSessionSatrtPlace(session.Id, telemetry);
+      postRaceMetricService.setSessionSatrtPlace(topic, session.Id, telemetry);
 
       // realTimeMetricService.calcTimeOnTarmac(session.Id, telemetry);
       realTimeMetricService.countColision(session.Id, telemetry);
+      realTimeMetricService.saveSpeed(session.Id, telemetry);
 
-      postRaceMetricService.setSessionEndPlace(session.Id, telemetry, (points: IPoint[]) => {
-        mqtt.publish(`${topic}/callback`, JSON.stringify(points));
+      postRaceMetricService.setSessionEndPlace(session.Id, telemetry, (t: string, points: IPoint[]) => {
+        mqtt.publish(`${t}/callback`, JSON.stringify(points));
       });
   });
 }

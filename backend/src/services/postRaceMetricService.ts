@@ -1,10 +1,10 @@
 import redis from '../startup/redis';
 import { rF2Telemetry } from '../rF2Models/rF2Telemetry';
 import { Session } from '../models/session';
-import { IPoint } from '../models/point';
 import * as _ from 'lodash';
 
 const setSessionSatrtPlace = async (
+  topic: string,
   sessionId: string,
   telemetry: rF2Telemetry
 ) => {
@@ -12,9 +12,13 @@ const setSessionSatrtPlace = async (
   if(!isSessionStart) return;
 
   const cache = {
+    Topic: topic,
     Id: telemetry.mID,
+    OnTarmacTime: 0,
     StartPosition: telemetry.mPlace,
-    ColisionsCount: 0
+    ColisionsCount: 0,
+    Points: [],
+    Speeds: []
   };
   redis.hSet(sessionId, telemetry.mID, JSON.stringify(cache));
 };
@@ -22,55 +26,53 @@ const setSessionSatrtPlace = async (
 const setSessionEndPlace = async (
   sessionId: string,
   telemetry: rF2Telemetry,
-  sessionEndCallBack: Function
+  sendPointsBack: Function
 ) => {
   const isSessionEnd = telemetry.mGamePhase === 8;
   if(!isSessionEnd) return;
 
-  const cache = await redis.hGet(sessionId, telemetry.mID.toString());
-  if (cache === undefined) return;
+  const driverCache = await redis.hGet(sessionId, telemetry.mID.toString());
 
-  const driverCache = JSON.parse(cache);
   const endPosition = telemetry.mPlace;
 
-  const finalPoints: IPoint[] = [];
-
-  // const points = [];
-  // const onTarmacPoint = Math.floor((driverCache.OnTarmacTime ?? 0) / 30);
-  // if(onTarmacPoint > 0) {
-  //   points.push({ Point: 1, Count: onTarmacPoint, Reason: 'Total Time on Tarmac' })
-  // }
-  // console.log(dirvers);
-
+  const speedSum = _.sum(driverCache.Speeds);
+  
   redis.hSet(sessionId, telemetry.mID, JSON.stringify({
     ...driverCache,
     EndPosition: endPosition,
     ImprovingStartPosition: driverCache.StartPosition > endPosition,
     LoosingStartPosition: driverCache.StartPosition < endPosition,
-    Points: finalPoints
+    AverageSpeed : speedSum / driverCache.Speeds.length
   }));
 
-  await calcWhenSessionEnd(sessionId, telemetry);
-
-  if (sessionEndCallBack) sessionEndCallBack(finalPoints);
-};
-
-const calcWhenSessionEnd = async (sessionId: string, telemetry: rF2Telemetry) => {
   const isLastDriver = telemetry.mID === 1;
-
   if (isLastDriver) {
-    const sessionCache = await redis.hGetAll(sessionId);
+    const sessionCache = await redis.client.hGetAll(sessionId);
     const dirvers = Object.values(sessionCache).map((val) => JSON.parse(val));
 
-    const result =_.sortBy(dirvers, d => d.ColisionsCount);
-    result[0].IsFewestColisions = true;
+    const sortByColisions =_.sortBy(dirvers, d => d.ColisionsCount);
+    sortByColisions[0].IsFewestColisions = true;
+    sortByColisions[0].Points.push({ Point: 1, Count: 1, Reason: 'FewestColisions' })
+
+    const sortBySpeed =_.sortBy(dirvers, d => d.AverageSpeed);
+    sortBySpeed[0].IsLowestAverageSpeed = true;
+    sortBySpeed[0].Points.push({ Point: 1, Count: 1, Reason: 'LowestAverageSpeed' })
+
+    dirvers.forEach(d => {
+      const onTarmacPoint = Math.floor(d.OnTarmacTime / 30);
+      if(onTarmacPoint > 0) {
+        d.Points.push({ Point: 1, Count: onTarmacPoint, Reason: 'Total Time on Tarmac' })
+      }
+
+      sendPointsBack(d.Topic, d.Points);
+    });
     
-    const session = { Id: sessionId, Drivers: result };
+    const session = { Id: sessionId, Drivers: dirvers };
     await Session.create(session);
   }
-}
+};
 
 export default {
     setSessionSatrtPlace,
-    setSessionEndPlace,
+    setSessionEndPlace
 };
