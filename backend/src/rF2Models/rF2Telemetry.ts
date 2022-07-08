@@ -19,5 +19,7 @@ export interface rF2Telemetry {
 
   mPlace: number;
 
+  mLastImpactET: number;
+
   mWheels: rF2Wheel[];
 }

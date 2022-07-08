@@ -8,6 +8,8 @@ export interface IDriver extends Document {
   ImprovingStartPosition: boolean;
   LoosingStartPosition: boolean;
   OnTarmacTime: number;
+  ColisionsCount: number;
+  IsFewestColisions:boolean;
   Points: IPoint[];
 }
 
@@ -29,6 +31,12 @@ const DriverSchema = new Schema<IDriver>({
   },
   OnTarmacTime: {
     type: Number,
+  },
+  ColisionsCount: {
+    type: Number,
+  },
+  IsFewestColisions: {
+    type: Boolean,
   },
   Points: [],
 });

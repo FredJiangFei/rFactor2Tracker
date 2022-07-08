@@ -55,7 +55,8 @@ namespace MQTT
         mID = pv.mID, 
         mPlace = pv.mPlace, 
         mGamePhase = scoring.mScoringInfo.mGamePhase,
-        mWheels = scoring.mWheels?.Select(x=>x.mSurfaceType)
+        mWheels = scoring.mWheels?.Select(x=>x.mSurfaceType),
+        mLastImpactET = scoring.mLastImpactET
       };
      
       await Send(client, topic, info);
