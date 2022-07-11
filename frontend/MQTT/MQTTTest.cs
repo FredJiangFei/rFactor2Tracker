@@ -55,8 +55,12 @@ namespace MQTT
         DriverId = pv.mID, 
         Place = pv.mPlace, 
         GamePhase = scoring.mScoringInfo.mGamePhase,
-        Wheels = scoring.mWheels?.Select(x=>x.mSurfaceType),
-        LastImpactET = scoring.mLastImpactET
+        Wheels = scoring.mWheels?.Select(x=> new { 
+          SurfaceType = x.mSurfaceType,
+          Wear = x.mWear
+        }),
+        LastImpactET = scoring.mLastImpactET,
+        Speed = scoring.mLocalVel
       };
      
       await Send(client, topic, info);

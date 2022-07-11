@@ -8,8 +8,11 @@ rF2Scoring scoring = new rF2Scoring();
 
 bool connected = true;
 
-await TestScoring("SIM-1");
-await TestScoring("SIM-2");
+await SendFile("SIM-1", "log1.log");
+await SendFile("SIM-2", "log1.log");
+await SendFile("SIM-1", "log2.log");
+await SendFile("SIM-1", "log10.log");
+await SendFile("SIM-2", "log2.log");
 
 async Task TestScoring(string directory){
     var mqttTest = new MQTTTest();
@@ -21,6 +24,13 @@ async Task TestScoring(string directory){
         var sc = Newtonsoft.Json.JsonConvert.DeserializeObject<rF2MqttModel>(json);
         await mqttTest.TrackScoring(directory, sc);
     }
+}
+
+async Task SendFile(string topic,  string file){
+    var mqttTest = new MQTTTest();
+    string json = File.ReadAllText($"./{topic}/{file}");
+    var sc = Newtonsoft.Json.JsonConvert.DeserializeObject<rF2MqttModel>(json);
+    await mqttTest.TrackScoring(topic, sc);
 }
 
 // await Connect();
