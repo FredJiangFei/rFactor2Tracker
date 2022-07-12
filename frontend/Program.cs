@@ -2,20 +2,88 @@
 using MQTT;
 using rF2SMMonitor;
 using rF2SMMonitor.rFactor2Data;
+using Test;
 
+MappedBuffer<rF2Telemetry> telemetryBuffer = new MappedBuffer<rF2Telemetry>(rFactor2Constants.MM_TELEMETRY_FILE_NAME, true /*partial*/, true /*skipUnchanged*/);
 MappedBuffer<rF2Scoring> scoringBuffer = new MappedBuffer<rF2Scoring>(rFactor2Constants.MM_SCORING_FILE_NAME, true /*partial*/, true /*skipUnchanged*/);
+
+// Marshalled views:
+rF2Telemetry telemetry = new rF2Telemetry();
 rF2Scoring scoring = new rF2Scoring();
+TransitionTracker tracker = new TransitionTracker();
 
 bool connected = true;
+// while (!connected)
+// {
+//     try
+//     {
+//         telemetryBuffer.Connect();
+//         scoringBuffer.Connect();
+//         connected = true;
+//     }
+//     catch (Exception)
+//     {
+//         Disconnect();
+//     }
+// }
 
-await SendFile("SIM-1", "log1.log");
-await SendFile("SIM-2", "log1.log");
-await SendFile("SIM-1", "log2.log");
-await SendFile("SIM-1", "log10.log");
-await SendFile("SIM-2", "log2.log");
+// while (true)
+// {
+//     try
+//     {
+//         MainUpdate();
+
+//         Thread.Sleep(3000);
+//         tracker.TrackTelemetry(ref scoring, ref telemetry);
+//     }
+//     catch (Exception)
+//     {
+//         Disconnect();
+//     }
+// }
+
+var test = new TestOverTaken();
+await test.OverTakenTwoDriversAndOverOneAgain();
+
+void MainUpdate()
+{
+    if (!connected)
+    {
+
+        telemetryBuffer.Connect();
+        scoringBuffer.Connect();
+        connected = true;
+        return;
+    }
+
+    try
+    {
+        telemetryBuffer.GetMappedData(ref telemetry);
+        scoringBuffer.GetMappedData(ref scoring);
+    }
+    catch (Exception)
+    {
+        Disconnect();
+    }
+}
+
+
+void Disconnect()
+{
+    telemetryBuffer.Disconnect();
+    scoringBuffer.Disconnect();
+    connected = false;
+}
+
+
+// await SendFile("SIM-1", "log1.log");
+// await SendFile("SIM-2", "log1.log");
+// await SendFile("SIM-1", "log2.log");
+// await SendFile("SIM-1", "log10.log");
+// await SendFile("SIM-2", "log2.log");
 
 async Task TestScoring(string directory){
-    var mqttTest = new MQTTTest();
+    var mqttTest = new MqttSender();
     string[] allfiles = Directory.GetFiles(directory);
     Array.Sort(allfiles, StringComparer.InvariantCulture);
     foreach (var file in allfiles)
@@ -27,119 +95,8 @@ async Task TestScoring(string directory){
 }
 
 async Task SendFile(string topic,  string file){
-    var mqttTest = new MQTTTest();
+    var mqttTest = new MqttSender();
     string json = File.ReadAllText($"./{topic}/{file}");
     var sc = Newtonsoft.Json.JsonConvert.DeserializeObject<rF2MqttModel>(json);
     await mqttTest.TrackScoring(topic, sc);
-}
-
-// await Connect();
-async Task Connect()
-{
-    // while (!connected)
-    // {
-    //     try
-    //     {
-    //         scoringBuffer.Connect();
-    //         connected = true;
-    //     }
-    //     catch (Exception)
-    //     {
-    //         Disconnect();
-    //     }
-    // }
-
-    while (connected)
-    {
-        // scoringBuffer.GetMappedData(ref scoring);
-        // var mqttTest = new MQTTTest();
-        // await mqttTest.SendScoring("telemetry/SIM-1", scoring);
-        await TestScoring("SIM-1");
-        await TestScoring("SIM-2");
-    }
-}
-
-//  var mqttTest = new MQTTTest();
-
-//         await mqttTest.TrackScoring("SIM-1", new rF2Scoring {
-//             mScoringInfo = new rF2ScoringInfo{
-//                 mSession = 0,
-//                 mGamePhase = 5,
-//                 mNumVehicles = 1
-//             },
-//             mVehicles = new rF2VehicleScoring[]{
-//                 new rF2VehicleScoring {
-//                     mID = 0,
-//                     mTotalLaps = 2,
-//                     mSector = 1,
-//                     mFinishStatus = 0,
-//                     mIsPlayer = 1,
-//                     mControl = 1,
-//                     mPlace = 6
-//                 }
-//             }
-//         });
-
-//         await mqttTest.TrackScoring("SIM-1", new rF2Scoring {
-//             mScoringInfo = new rF2ScoringInfo{
-//                 mSession = 0,
-//                 mGamePhase = 8,
-//                 mNumVehicles = 1
-//             },
-//             mVehicles = new rF2VehicleScoring[]{
-//                 new rF2VehicleScoring {
-//                     mID = 0,
-//                     mTotalLaps = 2,
-//                     mSector = 1,
-//                     mFinishStatus = 0,
-//                     mIsPlayer = 1,
-//                     mControl = 1,
-//                     mPlace = 3
-//                 }
-//             }
-//         });
-
-
-//         await mqttTest.TrackScoring("SIM-2", new rF2Scoring {
-//             mScoringInfo = new rF2ScoringInfo{
-//                 mSession = 0,
-//                 mGamePhase = 3,
-//                 mNumVehicles = 1
-//             },
-//             mVehicles = new rF2VehicleScoring[]{
-//                 new rF2VehicleScoring {
-//                     mID = 1,
-//                     mTotalLaps = 2,
-//                     mSector = 1,
-//                     mFinishStatus = 0,
-//                     mIsPlayer = 1,
-//                     mControl = 1,
-//                     mPlace = 7
-//                 }
-//             }
-//         });
-
-//         await mqttTest.TrackScoring("SIM-2", new rF2Scoring {
-//             mScoringInfo = new rF2ScoringInfo{
-//                 mSession = 0,
-//                 mGamePhase = 8,
-//                 mNumVehicles = 1
-//             },
-//             mVehicles = new rF2VehicleScoring[]{
-//                 new rF2VehicleScoring {
-//                     mID = 1,
-//                     mTotalLaps = 2,
-//                     mSector = 1,
-//                     mFinishStatus = 0,
-//                     mIsPlayer = 1,
-//                     mControl = 1,
-//                     mPlace = 10
-//                 }
-//             }
-//         });
-
-void Disconnect()
-{
-    scoringBuffer.Disconnect();
-    connected = false;
 }

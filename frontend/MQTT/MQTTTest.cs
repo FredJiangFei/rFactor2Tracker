@@ -5,10 +5,11 @@ using Newtonsoft.Json;
 using System.Text;
 using MQTTnet.Packets;
 using rF2SMMonitor;
+using F1ArcadeOverlay.Models;
 
 namespace MQTT
 {
-  public class MQTTTest
+  public class MqttSender
   {
       private readonly string basePath = Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location) + "\\logs";
       static int elemetryNum = 0;
@@ -50,6 +51,10 @@ namespace MQTT
       objSubOptions.TopicFilters = objTopics;
       await client.SubscribeAsync(objSubOptions); 
 
+      var speed = Math.Sqrt((playerVeh.mLocalVel.x * playerVeh.mLocalVel.x)
+      + (playerVeh.mLocalVel.y * playerVeh.mLocalVel.y)
+      + (playerVeh.mLocalVel.z * playerVeh.mLocalVel.z));
+
       var info = new { 
         Session = scoring.mScoringInfo.mSession,
         DriverId = pv.mID, 
@@ -60,7 +65,7 @@ namespace MQTT
           Wear = x.mWear
         }),
         LastImpactET = scoring.mLastImpactET,
-        Speed = scoring.mLocalVel
+        Speed = speed
       };
      
       await Send(client, topic, info);
@@ -122,6 +127,30 @@ namespace MQTT
                 .WithPayload(json)
                 .Build();
         await client.PublishAsync(message);   
+    }
+
+    IMqttClient client = new MqttFactory().CreateMqttClient();
+
+    public async Task ConnectAsync()
+    {
+        var builder = new MqttClientOptionsBuilder()
+                    .WithTcpServer("broker.hivemq.com", 1883)
+                    .WithCleanSession()
+                    .Build();
+        await client.ConnectAsync(builder);
+    }
+
+    public async Task SendTelemetry(string topic, TrackTelemetryModel data)
+    {
+        string json = JsonConvert.SerializeObject(data);
+        var message = new MqttApplicationMessageBuilder()
+                    .WithTopic(topic)
+                    .WithPayload(json)
+                    .Build();
+        if (client.IsConnected)
+        {
+            await client.PublishAsync(message);
+        }
     }
   }
 }
