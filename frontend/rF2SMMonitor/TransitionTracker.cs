@@ -1,5 +1,7 @@
+using System.Text;
 using F1ArcadeOverlay.Models;
 using MQTT;
+using Newtonsoft.Json;
 using rF2SMMonitor.rFactor2Data;
 using static rF2SMMonitor.rFactor2Constants;
 
@@ -41,6 +43,9 @@ namespace rF2SMMonitor
                + (playerVeh.mLocalVel.y * playerVeh.mLocalVel.y)
                + (playerVeh.mLocalVel.z * playerVeh.mLocalVel.z));
 
+            WriteFiles("rF2Scoring", scoring);
+            WriteFiles("rF2Telemetry", telemetry);
+
             var trackTelemetry = new TrackTelemetryModel
             {
                 SessionId = scoring.mScoringInfo.mSession,
@@ -57,7 +62,7 @@ namespace rF2SMMonitor
                 Fuel = playerVehTelemetry.mFuel,
                 EngineOilTemp = playerVehTelemetry.mEngineOilTemp
             };
-
+            WriteFiles("TrackTelemetryModel", trackTelemetry);
             var topic = "SIM-1";
             sender.Send(topic, trackTelemetry).GetAwaiter();
         }
@@ -92,6 +97,26 @@ namespace rF2SMMonitor
             }
 
             return playerVehScoring;
+        }
+   
+   
+        
+        private readonly string basePath = Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location) + "\\logs";
+        static int elemetryNum = 0;
+
+        private void WriteFiles<T>(string category, T data)
+        {
+            if (!Directory.Exists(basePath))
+                Directory.CreateDirectory(basePath);
+
+            string path = $"{basePath}\\${category}_{elemetryNum}.log";
+            string json = JsonConvert.SerializeObject(data, Formatting.Indented);
+            var fileBytes = Encoding.Default.GetBytes(json);
+            using (var stream = File.Create(path))
+            {
+                stream.Write(fileBytes, 0, fileBytes.Length);
+            }
+            elemetryNum++;
         }
     }
 }

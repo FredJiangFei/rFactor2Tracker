@@ -47,7 +47,7 @@ bool connected = true;
 while(true)
 {
     var test = new TestOverTaken();
-    await test.DropsDownFromOriginalPlace();
+    await test.OverTakenOneDriverWithAllPlaces();
 }
 
 void MainUpdate()

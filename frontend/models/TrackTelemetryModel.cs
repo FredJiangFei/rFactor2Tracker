@@ -26,5 +26,6 @@ namespace F1ArcadeOverlay.Models
         public double Fuel { get; set; }
         public double EngineOilTemp { get; set; }
         public TrackTelemetryWheel[] Wheels { get; set; }
+        public TrackTelemetryDriver[] Drivers { get; set; }
     }
 }

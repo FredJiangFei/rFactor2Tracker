@@ -8,8 +8,6 @@ namespace MQTT
 {
     public class MqttSender
     {
-        private readonly string basePath = Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location) + "\\logs";
-        static int elemetryNum = 0;
         IMqttClient client = new MqttFactory().CreateMqttClient(); 
 
         public bool IsSessionEnd = false;
@@ -58,20 +56,6 @@ namespace MQTT
             IsSessionEnd = true;
             Console.WriteLine(e.ApplicationMessage.Topic);
             Console.WriteLine(Encoding.UTF8.GetString(e.ApplicationMessage.Payload));
-        }
-
-        private void WriteFiles<T>(T data)
-        {
-            if (!Directory.Exists(basePath))
-                Directory.CreateDirectory(basePath);
-
-            string path = $"{basePath}\\log_{elemetryNum}.log";
-            string json = JsonConvert.SerializeObject(data, Formatting.Indented);
-            var fileBytes = Encoding.Default.GetBytes(json);
-            using (var stream = File.Create(path))
-            {
-                stream.Write(fileBytes, 0, fileBytes.Length);
-            }
         }
     }
 }
