@@ -12,9 +12,9 @@ namespace rF2SMMonitor
         public TransitionTracker()
         {
             sender = new MqttSender();
-            sender.ConnectAsync().GetAwaiter();
-        } 
-        
+            sender.ConnectAsync();
+        }
+
         public void TrackTelemetry(ref rF2Scoring scoring, ref rF2Telemetry telemetry)
         {
             if (scoring.mScoringInfo.mNumVehicles == 0) return;
@@ -48,7 +48,7 @@ namespace rF2SMMonitor
                 Place = playerVeh.mPlace,
                 GamePhase = (rF2GamePhase)scoring.mScoringInfo.mGamePhase,
                 LastImpactET = playerVehTelemetry.mLastImpactET,
-                Wheels = playerVehTelemetry.mWheels.Select(x=> new TrackTelemetryWheel
+                Wheels = playerVehTelemetry.mWheels.Select(x => new TrackTelemetryWheel
                 {
                     SurfaceType = x.mSurfaceType,
                     Wear = x.mWear
@@ -59,7 +59,12 @@ namespace rF2SMMonitor
             };
 
             var topic = "SIM-1";
-            sender.SendTelemetry(topic, trackTelemetry).GetAwaiter();
+            sender.Send(topic, trackTelemetry).GetAwaiter();
+        }
+
+        public async Task SendFileData(string topic, rF2MqttModel scoring)
+        {
+           await sender.Send(topic, scoring);
         }
 
         private rF2VehicleScoring GetPlayerScoring(ref rF2Scoring scoring)

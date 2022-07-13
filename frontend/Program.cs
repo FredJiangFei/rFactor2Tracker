@@ -13,6 +13,7 @@ rF2Scoring scoring = new rF2Scoring();
 TransitionTracker tracker = new TransitionTracker();
 
 bool connected = true;
+
 // while (!connected)
 // {
 //     try
@@ -42,8 +43,12 @@ bool connected = true;
 //     }
 // }
 
-var test = new TestOverTaken();
-await test.OverTakenTwoDriversAndOverOneAgain();
+
+while(true)
+{
+    var test = new TestOverTaken();
+    await test.DropsDownFromOriginalPlace();
+}
 
 void MainUpdate()
 {
@@ -76,27 +81,29 @@ void Disconnect()
 }
 
 
-// await SendFile("SIM-1", "log1.log");
-// await SendFile("SIM-2", "log1.log");
-// await SendFile("SIM-1", "log2.log");
-// await SendFile("SIM-1", "log10.log");
-// await SendFile("SIM-2", "log2.log");
+// await SendTopicFile("SIM-1", "log1.log");
+// await SendTopicFile("SIM-2", "log1.log");
+// await SendTopicFile("SIM-1", "log2.log");
+// await SendTopicFile("SIM-1", "log10.log");
+// await SendTopicFile("SIM-2", "log2.log");
 
-async Task TestScoring(string directory){
-    var mqttTest = new MqttSender();
+async Task SendDirectoryFiles(string directory){
+
     string[] allfiles = Directory.GetFiles(directory);
     Array.Sort(allfiles, StringComparer.InvariantCulture);
+
     foreach (var file in allfiles)
     {
-        string json = File.ReadAllText(file);
-        var sc = Newtonsoft.Json.JsonConvert.DeserializeObject<rF2MqttModel>(json);
-        await mqttTest.TrackScoring(directory, sc);
+        await SendTopicFile(directory, file);
     }
 }
 
-async Task SendFile(string topic,  string file){
-    var mqttTest = new MqttSender();
-    string json = File.ReadAllText($"./{topic}/{file}");
+async Task SendTopicFile(string topic, string file){
+    
+    var filePath = $"./{topic}/{file}";
+
+    var tracker = new TransitionTracker();
+    string json = File.ReadAllText(filePath);
     var sc = Newtonsoft.Json.JsonConvert.DeserializeObject<rF2MqttModel>(json);
-    await mqttTest.TrackScoring(topic, sc);
+    await tracker.SendFileData(topic, sc);
 }
